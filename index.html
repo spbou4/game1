@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Mise Fictive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+            margin: 0;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .balloon {
+            width: 50px;
+            height: 50px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 20px;
+            transition: width 0.5s ease, height 0.5s ease;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button:hover {
+            background-color: #1976D2;
+        }
+        .start-button {
+            background-color: #FFA500;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .start-button:hover {
+            background-color: #FF8C00;
+        }
+        .cash-out-button {
+            padding: 20px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #FF0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .cash-out-button:hover {
+            background-color: #D00000;
+        }
+        .results {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .balance {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="balance" id="balance">Solde: $1000</div>
+        <div class="controls">
+            <button onclick="setBetAmount(1)">1$</button>
+            <button onclick="setBetAmount(2)">2$</button>
+            <button onclick="setBetAmount(5)">5$</button>
+            <button onclick="setBetAmount(10)">10$</button>
+            <button onclick="setBetAmount(20)">20$</button>
+            <button onclick="setBetAmount(100)">100$</button>
+            <button onclick="setBetAmount(1000)">1000$</button>
+        </div>
+        <button class="start-button" onclick="startGame()">Commencer</button>
+        <div class="balloon" id="balloon">+</div>
+        <button class="cash-out-button" onclick="cashOut()" style="display:none;" id="cashOutButton">Encaisser</button>
+        <div class="results" id="results">Choisissez votre mise pour commencer.</div>
+    </div>
+
+    <script>
+        let balance = 1000;
+        let betAmount = 0;
+        let currentAmount = 0;
+        let interval;
+        let gameActive = false;
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = `Solde: $${balance}`;
+            if (balance <= 0) {
+                document.getElementById('results').textContent = "Votre solde est à zéro. Rafraîchissez la page pour recommencer.";
+                document.querySelectorAll('button').forEach(button => button.disabled = true);
+            }
+        }
+
+        function setBetAmount(amount) {
+            if (amount > balance) {
+                alert("Vous n'avez pas assez de solde pour cette mise.");
+                return;
+            }
+            betAmount = amount;
+            document.getElementById('results').textContent = `Vous avez choisi une mise de $${betAmount}. Cliquez sur "Commencer" pour démarrer le jeu.`;
+        }
+
+        function startGame() {
+            if (betAmount <= 0) {
+                alert("Veuillez choisir une mise valide.");
+                return;
+            }
+
+            balance -= betAmount;
+            updateBalance();
+            currentAmount = betAmount;
+            gameActive = true;
+            document.getElementById('cashOutButton').style.display = 'block';
+            document.getElementById('results').textContent = "Le jeu a commencé !";
+            document.getElementById('balloon').style.width = '50px';
+            document.getElementById('balloon').style.height = '50px';
+
+            interval = setInterval(() => {
+                if (gameActive) {
+                    currentAmount *= 2;
+                    const balloon = document.getElementById('balloon');
+                    let newSize = parseInt(balloon.style.width) * 1.5;
+                    balloon.style.width = newSize + 'px';
+                    balloon.style.height = newSize + 'px';
+                    document.getElementById('results').textContent = `Montant actuel : $${currentAmount}`;
+                }
+            }, 1000);
+
+            setTimeout(() => {
+                if (gameActive) {
+                    stopGame(false);
+                }
+            }, Math.random() * 10000 + 5000);
+        }
+
+        function cashOut() {
+            if (gameActive) {
+                stopGame(true);
+            }
+        }
+
+        function stopGame(won) {
+            clearInterval(interval);
+            gameActive = false;
+            document.getElementById('cashOutButton').style.display = 'none';
+            if (won) {
+                balance += currentAmount;
+                document.getElementById('results').textContent = `Vous avez encaissé $${currentAmount}! Félicitations!`;
+            } else {
+                document.getElementById('results').textContent = "Le jeu s'est arrêté. Vous avez perdu votre mise.";
+            }
+            updateBalance();
+        }
+
+        updateBalance();
+    </script>
+</body>
+</html>
